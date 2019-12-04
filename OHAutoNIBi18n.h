@@ -20,4 +20,5 @@
 /// @param tableName The name of the strings file where to look up for localizations
 ///                  (without the ".strings" or ".stringsdict" extension). Defaults to "Localizable".
 + (void)setLocalizationBundle:(NSBundle* __nullable)bundle tableName:(NSString* __nullable)tableName;
+    + (void)setLocalizationArray:(NSMutableArray* __nullable)languageArray;
 @end
