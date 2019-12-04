@@ -127,7 +127,18 @@ static inline NSString* localizedString(NSString* aString)
         return tr;
     }
 #else
-    return [_bundle localizedStringForKey:aString value:nil table:_tableName];
+    if ([_languageArray count] != 0) {
+        NSPredicate *thePredicate = [NSPredicate predicateWithFormat:@"SELF.key LIKE %@", aString];
+        NSArray *filteredList = [_languageArray filteredArrayUsingPredicate:thePredicate];
+        
+        NSDictionary *selectedDict = [filteredList lastObject];
+        if ([selectedDict valueForKey:@"value"] == nil) {
+            return aString;
+        }
+        return [selectedDict valueForKey:@"value"];
+    } else {
+        return [_bundle localizedStringForKey:aString value:nil table:_tableName];
+    }
 #endif
 }
 
