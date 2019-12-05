@@ -99,46 +99,38 @@ static inline NSString* localizedString(NSString* aString)
     if ([[NSCharacterSet decimalDigitCharacterSet] characterIsMember:[aString characterAtIndex:0]])
         return aString;
     
+    NSString* str = nil;
+    if ([_languageArray count] != 0) {
+        NSPredicate *thePredicate = [NSPredicate predicateWithFormat:@"SELF.key LIKE %@", aString];
+        NSArray *filteredList = [_languageArray filteredArrayUsingPredicate:thePredicate];
+        
+        NSDictionary *selectedDict = [filteredList lastObject];
+        if ([selectedDict valueForKey:@"value"] != nil) {
+            if ([[selectedDict valueForKey:@"value"] isKindOfClass:[NSString class]] && [
+                                                                                         (NSString*) ([selectedDict valueForKey:@"value"]) length] > 0) {
+                str = [selectedDict valueForKey:@"value"];
+                return str;
+            }
+        }
+    }
 #if OHAutoNIBi18n_DEBUG
 #warning Debug mode for i18n is active
-    if ([_languageArray count] != 0) {
-        NSPredicate *thePredicate = [NSPredicate predicateWithFormat:@"SELF.key LIKE %@", aString];
-        NSArray *filteredList = [_languageArray filteredArrayUsingPredicate:thePredicate];
-        
-        NSDictionary *selectedDict = [filteredList lastObject];
-        if ([selectedDict valueForKey:@"value"] == nil) {
-            return aString;
-        }
-        return [selectedDict valueForKey:@"value"];
-    } else {
-        static NSString* const kNoTranslation = @"$!";
-        NSString* tr = [_bundle localizedStringForKey:aString value:kNoTranslation table:_tableName];
-        if ([tr isEqualToString:kNoTranslation])
+    static NSString* const kNoTranslation = @"$!";
+    NSString* tr = [_bundle localizedStringForKey:aString value:kNoTranslation table:_tableName];
+    if ([tr isEqualToString:kNoTranslation])
+    {
+        if ([aString hasPrefix:@"."])
         {
-            if ([aString hasPrefix:@"."])
-            {
-                // strings in XIB starting with '.' are typically used as temporary placeholder for design
-                // and will be replaced by code later, so don't warn about them
-                return aString;
-            }
-            NSLog(@"No translation for string '%@'",aString);
-            tr = [NSString stringWithFormat:@"$%@$",aString];
-        }
-        return tr;
-    }
-#else
-    if ([_languageArray count] != 0) {
-        NSPredicate *thePredicate = [NSPredicate predicateWithFormat:@"SELF.key LIKE %@", aString];
-        NSArray *filteredList = [_languageArray filteredArrayUsingPredicate:thePredicate];
-        
-        NSDictionary *selectedDict = [filteredList lastObject];
-        if ([selectedDict valueForKey:@"value"] == nil) {
+            // strings in XIB starting with '.' are typically used as temporary placeholder for design
+            // and will be replaced by code later, so don't warn about them
             return aString;
         }
-        return [selectedDict valueForKey:@"value"];
-    } else {
-        return [_bundle localizedStringForKey:aString value:nil table:_tableName];
+        NSLog(@"No translation for string '%@'",aString);
+        tr = [NSString stringWithFormat:@"$%@$",aString];
     }
+    return tr;
+#else
+    return [_bundle localizedStringForKey:aString value:nil table:_tableName];
 #endif
 }
 
